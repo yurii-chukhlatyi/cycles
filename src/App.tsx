@@ -42,6 +42,8 @@ import type {
 import { money, quantity, percent, sign, label } from "./format";
 import { RecordForm } from "./Forms";
 import { ImportWizard } from "./ImportWizard";
+import { HelpLabel, HelpTip } from "./HelpTip";
+import { widgetDescriptions, widgetHelp } from "./widgetHelp";
 import {
   ActionBadge,
   InstrumentBadge,
@@ -72,15 +74,17 @@ function Metric({
   value,
   note,
   tone,
+  help,
 }: {
   title: string;
   value: string;
   note?: string;
   tone?: ReturnType<typeof sign>;
+  help?: string;
 }) {
   return (
     <div className={`metric ${tone ?? "neutral"}`}>
-      <span>{title}</span>
+      <span>{help ? <HelpLabel label={title} help={help} /> : title}</span>
       <strong>
         {tone === undefined ? value : <OutcomeText value={value} tone={tone} />}
       </strong>
@@ -629,6 +633,7 @@ export default function App() {
                   <div className="metrics-grid">
                     <Metric
                       title="Portfolio equity"
+                      help={widgetHelp.portfolioEquity}
                       value={money(totals?.equity, currency)}
                       note={
                         totals
@@ -638,18 +643,21 @@ export default function App() {
                     />
                     <Metric
                       title="Total position P/L"
+                      help={widgetHelp.totalPositionPL}
                       value={money(totals?.total_pl, currency)}
                       note="Realized + unrealized · retained history"
                       tone={sign(totals?.total_pl)}
                     />
                     <Metric
                       title="Realized P/L"
+                      help={widgetHelp.realizedPL}
                       value={money(totals?.realized, currency)}
                       note="Includes transaction fees"
                       tone={sign(totals?.realized)}
                     />
                     <Metric
                       title="Unrealized P/L"
+                      help={widgetHelp.unrealizedPL}
                       value={money(totals?.unrealized, currency)}
                       note={
                         totals?.missing_quotes
@@ -782,30 +790,43 @@ export default function App() {
                   <div className="two-columns">
                     <section className="panel">
                       <div className="panel-heading">
-                        <h2>Strategy performance</h2>
+                        <div>
+                          <div className="panel-title">
+                            <h2>Strategy performance</h2>
+                            <HelpTip
+                              label="Strategy performance"
+                              text={widgetHelp.strategy}
+                            />
+                          </div>
+                          <p>{widgetDescriptions.strategy}</p>
+                        </div>
                         <span className="chip">{currency}</span>
                       </div>
                       <div className="performance-grid">
                         <Metric
                           title="Investment gain"
+                          help={widgetHelp.investmentGain}
                           value={money(performance?.investment_gain, currency)}
                           tone={sign(performance?.investment_gain)}
                           note="Growth after contributions"
                         />
                         <Metric
                           title="Time-weighted return"
+                          help={widgetHelp.timeWeightedReturn}
                           value={percent(performance?.twr)}
                           tone={sign(performance?.twr)}
                           note={performance?.twr_method}
                         />
                         <Metric
                           title="Money-weighted return"
+                          help={widgetHelp.moneyWeightedReturn}
                           value={percent(performance?.xirr)}
                           tone={sign(performance?.xirr)}
                           note={performance?.xirr_status}
                         />
                         <Metric
                           title="Portfolio volatility"
+                          help={widgetHelp.portfolioVolatility}
                           value={percent(performance?.volatility)}
                           note={`${performance?.observations ?? 0} valid daily returns · ${performance?.missing_periods ?? 0} gaps · annualized`}
                         />
@@ -814,47 +835,95 @@ export default function App() {
                         <p className="hint">
                           Position P/L for the selected period:{" "}
                           <PnL value={totals?.period_pl} currency={currency} />.
-                          This includes the change in unrealized value.
+                          This includes the change in unrealized value.{" "}
+                          <HelpTip
+                            label="Position P/L for selected period"
+                            text={widgetHelp.periodPositionPL}
+                          />
                         </p>
                       )}
                     </section>
                     <section className="panel">
                       <div className="panel-heading">
-                        <h2>Exposure & data coverage</h2>
+                        <div>
+                          <div className="panel-title">
+                            <h2>Exposure & data coverage</h2>
+                            <HelpTip
+                              label="Exposure & data coverage"
+                              text={widgetHelp.exposure}
+                            />
+                          </div>
+                          <p>{widgetDescriptions.exposure}</p>
+                        </div>
                         <ShieldCheck size={18} />
                       </div>
                       <dl className="facts">
                         <div>
-                          <dt>Gross / net exposure</dt>
+                          <dt>
+                            <HelpLabel
+                              label="Gross / net exposure"
+                              help={widgetHelp.grossNetExposure}
+                            />
+                          </dt>
                           <dd>
                             {money(totals?.gross_exposure, currency)} /{" "}
                             {money(totals?.net_exposure, currency)}
                           </dd>
                         </div>
                         <div>
-                          <dt>Planned loss at stops</dt>
+                          <dt>
+                            <HelpLabel
+                              label="Planned loss at stops"
+                              help={widgetHelp.plannedLoss}
+                            />
+                          </dt>
                           <dd>{money(totals?.planned_risk, currency)}</dd>
                         </div>
                         <div>
-                          <dt>Delta exposure</dt>
+                          <dt>
+                            <HelpLabel
+                              label="Delta exposure"
+                              help={widgetHelp.deltaExposure}
+                            />
+                          </dt>
                           <dd>{money(totals?.delta_exposure, currency)}</dd>
                         </div>
                         <div>
-                          <dt>Net external contributions</dt>
+                          <dt>
+                            <HelpLabel
+                              label="Net external contributions"
+                              help={widgetHelp.externalContributions}
+                            />
+                          </dt>
                           <dd>
                             {money(totals?.external_contributions, currency)}
                           </dd>
                         </div>
                         <div>
-                          <dt>Net capital allocated to this scope</dt>
+                          <dt>
+                            <HelpLabel
+                              label="Net capital allocated to this scope"
+                              help={widgetHelp.allocatedCapital}
+                            />
+                          </dt>
                           <dd>{money(totals?.contributed, currency)}</dd>
                         </div>
                         <div>
-                          <dt>Cash balance</dt>
+                          <dt>
+                            <HelpLabel
+                              label="Cash balance"
+                              help={widgetHelp.cashBalance}
+                            />
+                          </dt>
                           <dd>{money(totals?.cash, currency)}</dd>
                         </div>
                         <div>
-                          <dt>Income / expenses</dt>
+                          <dt>
+                            <HelpLabel
+                              label="Income / expenses"
+                              help={widgetHelp.incomeExpenses}
+                            />
+                          </dt>
                           <dd>
                             {money(totals?.income, currency)} /{" "}
                             {money(totals?.expenses, currency)}
@@ -865,7 +934,11 @@ export default function App() {
                         <p className="hint">
                           {totals.missing_stops} open positions without valid
                           stops · {totals.missing_deltas} without delta
-                          evidence. Short exposure can have unbounded loss.
+                          evidence. Short exposure can have unbounded loss.{" "}
+                          <HelpTip
+                            label="Risk data coverage"
+                            text={widgetHelp.riskCoverage}
+                          />
                         </p>
                       )}
                     </section>
@@ -923,14 +996,28 @@ export default function App() {
                     .map((a) => (
                       <section className="panel section-gap" key={a.currency}>
                         <div className="panel-heading">
-                          <h2>Investment gain reconciliation</h2>
+                          <div>
+                            <div className="panel-title">
+                              <h2>Investment gain reconciliation</h2>
+                              <HelpTip
+                                label="Investment gain reconciliation"
+                                text={widgetHelp.reconciliation}
+                              />
+                            </div>
+                            <p>{widgetDescriptions.reconciliation}</p>
+                          </div>
                           <span className="chip">
                             {a.from ?? "No baseline"} → {a.to}
                           </span>
                         </div>
                         <dl className="facts">
                           <div>
-                            <dt>Position P/L over this interval</dt>
+                            <dt>
+                              <HelpLabel
+                                label="Position P/L over this interval"
+                                help={widgetHelp.periodPositionPL}
+                              />
+                            </dt>
                             <dd>
                               <PnL
                                 value={a.period_position_pl}
@@ -939,18 +1026,33 @@ export default function App() {
                             </dd>
                           </div>
                           <div>
-                            <dt>Income minus expenses</dt>
+                            <dt>
+                              <HelpLabel
+                                label="Income minus expenses"
+                                help={widgetHelp.incomeMinusExpenses}
+                              />
+                            </dt>
                             <dd>
                               {money(a.income, currency)} −{" "}
                               {money(a.expenses, currency)}
                             </dd>
                           </div>
                           <div>
-                            <dt>Baseline / basis / cash reconciliation</dt>
+                            <dt>
+                              <HelpLabel
+                                label="Baseline / basis / cash reconciliation"
+                                help={widgetHelp.reconciliationAdjustment}
+                              />
+                            </dt>
                             <dd>{money(a.reconciliation, currency)}</dd>
                           </div>
                           <div>
-                            <dt>Total investment gain</dt>
+                            <dt>
+                              <HelpLabel
+                                label="Total investment gain"
+                                help={widgetHelp.totalInvestmentGain}
+                              />
+                            </dt>
                             <dd>
                               <PnL
                                 value={a.investment_gain}

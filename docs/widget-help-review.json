@@ -1,0 +1,66 @@
+{
+  "status": "complete",
+  "verdict": "Ready to merge",
+  "scope": {
+    "base": "5a6422565bc39a39295b31b459bd6537dd72bc4e",
+    "branch": "feat/portfolio-cycle-app",
+    "head_sha": "5a6422565bc39a39295b31b459bd6537dd72bc4e",
+    "pr_url": null,
+    "files_changed": 6
+  },
+  "intent": "Add help icons for seven named Overview widgets and their values, with short descriptions on the three detailed panels. Preserve current financial calculations and data.",
+  "intent_confidence": "explicit",
+  "reviewers": [
+    "correctness",
+    "testing",
+    "maintainability",
+    "frontend-races"
+  ],
+  "independent_reviewers": [],
+  "findings": [],
+  "actionable_findings": [],
+  "triage_groups": [],
+  "pre_existing_findings": [],
+  "requirements_completeness": null,
+  "learnings": [],
+  "deployment_notes": [],
+  "residual_risks": [],
+  "testing_gaps": [],
+  "coverage": {
+    "depth": "full",
+    "execution": "Sequential main-thread adaptation required by user AGENTS; not the default independent multi-agent finish.",
+    "independent_reviewers": [],
+    "selected_lenses": [
+      "correctness",
+      "testing",
+      "maintainability",
+      "frontend-races"
+    ],
+    "project_standards": "not run: successful search found no governing on-disk criteria files",
+    "review_policy": {
+      "sources": [],
+      "removed": 0,
+      "regraded": 0,
+      "not_applied": []
+    },
+    "cross_model": "not selected: no evidenced material adversarial failure scenario in this tooltip-only change",
+    "validator": "empty batch; no findings, no validator or shortcut",
+    "first_evidence_backfilled": 0,
+    "suppressed_findings": 0,
+    "failed_reviewers": [],
+    "compound_packs": {
+      "roots": [],
+      "warnings": [],
+      "errors": []
+    },
+    "settlement_suppression": "not evaluated: no scope-specific plan discovered",
+    "limitations": [
+      "No independent reviewer context or cross-model peer.",
+      "Browser interaction, not native interaction verification; running user app left alone.",
+      "No VoiceOver certification, Windows execution or live Google Sheets check."
+    ],
+    "timing_note": "Stage log records final receipt assembly, excluding earlier implementation and inline investigation time."
+  },
+  "artifact_path": "/tmp/compound-engineering-502/ce-code-review/20261109-220133-e79ab6b0",
+  "run_id": "20261109-220133-e79ab6b0"
+}

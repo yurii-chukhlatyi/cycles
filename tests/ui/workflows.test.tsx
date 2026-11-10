@@ -471,3 +471,59 @@ it("keeps the overview and currency controls when As of precedes the first cycle
     "true",
   );
 });
+
+it("explains the requested overview widgets and distinguishes cumulative P/L from period returns", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByRole("heading", { name: "Portfolio overview" });
+  for (const name of [
+    "Portfolio equity",
+    "Total position P/L",
+    "Realized P/L",
+    "Unrealized P/L",
+    "Strategy performance",
+    "Exposure & data coverage",
+    "Investment gain reconciliation",
+  ])
+    expect(
+      screen.getByRole("button", { name: `Explain ${name}` }),
+    ).toBeVisible();
+  expect(
+    screen.getByText(
+      "Growth and returns for the selected period, separated from cash additions.",
+    ),
+  ).toBeVisible();
+  expect(
+    screen.getByText(
+      "How much is invested, what is at risk, and which inputs are missing.",
+    ),
+  ).toBeVisible();
+  expect(
+    screen.getByText(
+      "How position P/L, income, expenses, and record adjustments add up to investment gain.",
+    ),
+  ).toBeVisible();
+  await user.click(
+    screen.getByRole("button", { name: "Explain Total position P/L" }),
+  );
+  expect(screen.getByRole("tooltip")).toHaveTextContent(
+    "Cumulative through To",
+  );
+  expect(screen.getByRole("tooltip")).toHaveTextContent(
+    "From does not reset this value",
+  );
+  await user.keyboard("{Escape}");
+  await user.click(
+    screen.getByRole("button", { name: "Explain Time-weighted return" }),
+  );
+  expect(screen.getByRole("tooltip")).toHaveTextContent("not annualized");
+  await user.keyboard("{Escape}");
+  await user.click(
+    screen.getByRole("button", {
+      name: "Explain Baseline / basis / cash reconciliation",
+    }),
+  );
+  expect(screen.getByRole("tooltip")).toHaveTextContent(
+    "not automatically trading profit or FX profit",
+  );
+});
