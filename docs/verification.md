@@ -61,3 +61,20 @@ The interface now uses a Wealthsimple-inspired warm dark palette: charcoal surfa
 Verification: the existing 7 UI tests, TypeScript/build and lint pass. The Mac arm64 release build passes and was launched, reopening the same verified workbook at revision 2 with equity 32166 and total position P/L 2166. Browser checks covered the overview, expanded position and entry form at 1280px and 780px desktop widths. A one-off contrast audit checked normal text and semantic text pairs at >=4.5:1; the lowest checked pair was muted text on raised surfaces at 5.55:1. No new behavior tests were added for the styling-only change; visual checks are the primary evidence. Rust accounting and persistence code were not modified.
 
 Code review: skipped (mechanical diff) — color token substitutions, chart presentation, dark appearance configuration and documentation only. Manual diff inspection confirmed calculation expressions, events, data storage and permissions are unchanged. The earlier Windows/live Google verification limitations still apply; this update does not establish those external results.
+
+
+## Semantic color update
+
+The UI/UX designer was consulted in a separate sub-agent and approved the actual rebuilt native Positions screen with no material color or hierarchy issue. The palette uses mint/coral for gains/losses, blue/violet for call/put, cyan for open/active, amber for partial/winding-down/warnings, and slate for closed. Calls and puts are labeled in collapsed rows. Transaction actions have labeled glyph badges. Zero and unavailable results stay distinct. Outcome signs/arrows and explicit state/type labels support interpretation without color. Portfolio equity, contributions, and volatility stay neutral; the equity chart stays gold with a slate-blue capital line.
+
+Verification for this change:
+
+- 11 UI tests pass, including a mixed-row integration test for losing calls, profitable closed puts, stale/missing quotes, and zero/unavailable results. The new semantic component tests first failed before implementation, then passed. These are presentation tests, not new accounting evidence.
+- TypeScript/Vite build, ESLint and the Mac arm64 release build pass.
+- A one-off audit checked 28 semantic foreground/background pairs; minimum contrast 5.44:1. This is a palette check, not a complete accessibility certification.
+- The final Mac app opened and verified a generated fictional 6-position XLSX, with profitable calls and puts, a losing closed call, a profitable closed short put, a partially closed stock and a losing open stock. The Rust engine calculated all example financial results. Position rows, expanded dated transaction badges, overview totals and returns were inspected in the actual native app.
+- A 780px browser check confirmed the new legend wraps, P/L cards remain readable, and the positions table scrolls within its container without page overflow. It used the existing fictional read-only sample.
+- Inline correctness, testing and maintainability review found no actionable code issue. The semantic helpers reuse existing formatting/sign functions; no accounting math, persistence, permissions or record contracts changed. Review ran in the main thread under the user's AGENTS mapping. It is not an independent code review or the default multi-agent finish workflow. Independent coverage here is the designer's visual review.
+- Simplification pass found no worthwhile behavior-preserving code change. No test was removed or weakened.
+
+The designer's optional polish notes were the existing persistent success banner and the dashed underline on Short; neither blocked approval. VoiceOver/keyboard accessibility, Windows execution and live Google Sheets were not tested by this change. The earlier distribution signing limitations still apply. All screenshots and the showcase workbook contain fictional data; real investor workbooks and statements were not modified.

@@ -225,3 +225,75 @@ it("requires explicit import cash and locks the reviewed allocation during prepa
   for (const select of screen.getAllByRole("combobox"))
     expect(select).toBeDisabled();
 });
+
+it("shows option type, lifecycle, and outcomes independently in position rows", async () => {
+  const mixed = structuredClone(state);
+  const base = mixed.report.positions[0];
+  mixed.report.positions = [
+    {
+      ...base,
+      position: { ...base.position, id: "call-loss" },
+      instrument: {
+        ...base.instrument,
+        symbol: "EXAMPLE CALL",
+        asset: "option",
+        option_right: "call",
+      },
+      status: "Open",
+      total_pl: "-120",
+      unrealized: "-120",
+      stale: true,
+    },
+    {
+      ...base,
+      position: { ...base.position, id: "put-profit" },
+      instrument: {
+        ...base.instrument,
+        symbol: "EXAMPLE PUT",
+        asset: "option",
+        option_right: "put",
+      },
+      status: "Closed",
+      quantity: "0",
+      total_pl: "80",
+      realized: "80",
+      unrealized: "0",
+    },
+    {
+      ...base,
+      position: { ...base.position, id: "missing" },
+      instrument: { ...base.instrument, symbol: "NO QUOTE" },
+      status: "Partially closed",
+      price: undefined,
+      quote_date: undefined,
+      total_pl: undefined,
+      unrealized: undefined,
+    },
+  ];
+  call.mockImplementation(async () => mixed);
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByRole("heading", { name: "Portfolio overview" });
+  await user.click(screen.getByRole("button", { name: "Positions" }));
+  const callRow = screen
+    .getByRole("button", { name: /EXAMPLE CALL/ })
+    .closest("tr")!;
+  const putRow = screen
+    .getByRole("button", { name: /EXAMPLE PUT/ })
+    .closest("tr")!;
+  const missingRow = screen
+    .getByRole("button", { name: /NO QUOTE/ })
+    .closest("tr")!;
+  expect(within(callRow).getByLabelText("Option type: Call")).toBeVisible();
+  expect(within(callRow).getByLabelText("Status: Open")).toBeVisible();
+  expect(within(callRow).getAllByLabelText("Loss: -US$120.00")).toHaveLength(2);
+  expect(within(callRow).getByText(/stale/)).toHaveClass("caution");
+  expect(within(putRow).getByLabelText("Option type: Put")).toBeVisible();
+  expect(within(putRow).getByLabelText("Status: Closed")).toBeVisible();
+  expect(within(putRow).getAllByLabelText("Gain: +US$80.00")).toHaveLength(2);
+  expect(
+    within(putRow).getByLabelText("No gain or loss: US$0.00"),
+  ).toBeVisible();
+  expect(within(missingRow).getByText("Missing quote")).toHaveClass("caution");
+  expect(within(missingRow).getAllByLabelText("Unavailable")).toHaveLength(2);
+});

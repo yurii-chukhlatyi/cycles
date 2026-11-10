@@ -42,6 +42,13 @@ import type {
 import { money, quantity, percent, sign, label } from "./format";
 import { RecordForm } from "./Forms";
 import { ImportWizard } from "./ImportWizard";
+import {
+  ActionBadge,
+  InstrumentBadge,
+  OutcomeText,
+  PnL,
+  StateBadge,
+} from "./Semantics";
 
 type Page =
   "Overview" | "Positions" | "Cycles" | "Cash" | "History" | "Data & source";
@@ -69,12 +76,14 @@ function Metric({
   title: string;
   value: string;
   note?: string;
-  tone?: string;
+  tone?: ReturnType<typeof sign>;
 }) {
   return (
-    <div className="metric">
+    <div className={`metric ${tone ?? "neutral"}`}>
       <span>{title}</span>
-      <strong className={tone}>{value}</strong>
+      <strong>
+        {tone === undefined ? value : <OutcomeText value={value} tone={tone} />}
+      </strong>
       {note && <small>{note}</small>}
     </div>
   );
@@ -749,16 +758,19 @@ export default function App() {
                         <Metric
                           title="Investment gain"
                           value={money(performance?.investment_gain, currency)}
+                          tone={sign(performance?.investment_gain)}
                           note="Growth after contributions"
                         />
                         <Metric
                           title="Time-weighted return"
                           value={percent(performance?.twr)}
+                          tone={sign(performance?.twr)}
                           note={performance?.twr_method}
                         />
                         <Metric
                           title="Money-weighted return"
                           value={percent(performance?.xirr)}
+                          tone={sign(performance?.xirr)}
                           note={performance?.xirr_status}
                         />
                         <Metric
@@ -770,8 +782,8 @@ export default function App() {
                       {filter.from && (
                         <p className="hint">
                           Position P/L for the selected period:{" "}
-                          {money(totals.period_pl, currency)}. This includes the
-                          change in unrealized value.
+                          <PnL value={totals.period_pl} currency={currency} />.
+                          This includes the change in unrealized value.
                         </p>
                       )}
                     </section>
@@ -886,7 +898,12 @@ export default function App() {
                         <dl className="facts">
                           <div>
                             <dt>Position P/L over this interval</dt>
-                            <dd>{money(a.period_position_pl, currency)}</dd>
+                            <dd>
+                              <PnL
+                                value={a.period_position_pl}
+                                currency={currency}
+                              />
+                            </dd>
                           </div>
                           <div>
                             <dt>Income minus expenses</dt>
@@ -901,7 +918,12 @@ export default function App() {
                           </div>
                           <div>
                             <dt>Total investment gain</dt>
-                            <dd>{money(a.investment_gain, currency)}</dd>
+                            <dd>
+                              <PnL
+                                value={a.investment_gain}
+                                currency={currency}
+                              />
+                            </dd>
                           </div>
                         </dl>
                         <p className="hint">{a.note}</p>
@@ -936,6 +958,28 @@ export default function App() {
                       <option value="closed">Closed</option>
                     </select>
                     <span className="muted">{visible.length} positions</span>
+                  </div>
+                  <div
+                    className="color-legend"
+                    aria-label="Position color guide"
+                  >
+                    <span>
+                      <i className="legend-dot call-key" />
+                      Call
+                    </span>
+                    <span>
+                      <i className="legend-dot put-key" />
+                      Put
+                    </span>
+                    <span>
+                      <i className="legend-dot gain-key" />
+                      Gain
+                    </span>
+                    <span>
+                      <i className="legend-dot loss-key" />
+                      Loss
+                    </span>
+                    <small>Type and status are separate from P/L.</small>
                   </div>
                   <div className="table-wrap">
                     <table className="positions">
@@ -993,9 +1037,7 @@ export default function App() {
                           </span>
                           <h2>{c.name}</h2>
                         </div>
-                        <span className={`status ${c.state}`}>
-                          {label(c.state)}
-                        </span>
+                        <StateBadge state={c.state} />
                       </div>
                       <p>
                         {c.strategy ||
@@ -1735,10 +1777,20 @@ function PositionRows({
           <button className="position-toggle" aria-expanded={expanded}>
             {expanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
             <span>
-              <strong>{v.instrument.symbol}</strong>
+              <span className="position-name">
+                <strong>{v.instrument.symbol}</strong>
+                <InstrumentBadge
+                  asset={v.instrument.asset}
+                  right={v.instrument.option_right}
+                />
+              </span>
               <small>
-                {label(v.position.direction)} · {label(v.instrument.asset)} ·{" "}
-                {v.cycle_name}
+                <span
+                  className={`direction-label direction-${v.position.direction}`}
+                >
+                  {label(v.position.direction)}
+                </span>{" "}
+                · {v.cycle_name}
               </small>
             </span>
           </button>
@@ -1747,22 +1799,24 @@ function PositionRows({
         <td>{money(v.average_entry, c)}</td>
         <td>
           {money(v.price, c)}
-          <small className={`block ${v.stale ? "negative" : ""}`}>
-            {v.quote_date ?? "No quote"}
+          <small
+            className={`block ${v.stale || !v.quote_date ? "caution" : ""}`}
+          >
+            {v.quote_date ?? "Missing quote"}
             {v.stale ? " · stale" : ""}
           </small>
         </td>
-        <td className={sign(v.realized)}>{money(v.realized, c)}</td>
-        <td className={sign(v.unrealized)}>{money(v.unrealized, c)}</td>
-        <td className={sign(v.total_pl)}>
-          <strong>{money(v.total_pl, c)}</strong>
+        <td>
+          <PnL value={v.realized} currency={c} />
         </td>
         <td>
-          <span
-            className={`status ${Number(v.quantity) > 0 ? "active" : "closed"}`}
-          >
-            {v.status}
-          </span>
+          <PnL value={v.unrealized} currency={c} />
+        </td>
+        <td className="pnl-total">
+          <PnL value={v.total_pl} currency={c} />
+        </td>
+        <td>
+          <StateBadge state={v.status} />
         </td>
       </tr>
       {expanded && (
@@ -1816,8 +1870,8 @@ function PositionRows({
                 </span>
                 <span>
                   Maximum loss{" "}
-                  <strong>
-                    {v.unbounded ? "Unbounded" : money(v.maximum_loss, c)}
+                  <strong className={v.unbounded ? "caution" : undefined}>
+                    {v.unbounded ? "⚠ Unbounded" : money(v.maximum_loss, c)}
                   </strong>
                 </span>
                 <span>
@@ -1864,7 +1918,7 @@ function PositionRows({
                           </small>
                         </td>
                         <td>
-                          {label(l.transaction.action)}
+                          <ActionBadge action={l.transaction.action} />
                           {l.transaction.settlement_id && (
                             <small className="block">Linked settlement</small>
                           )}
@@ -1872,8 +1926,8 @@ function PositionRows({
                         <td>{quantity(l.transaction.quantity)}</td>
                         <td>{money(l.transaction.price, c)}</td>
                         <td>{money(l.transaction.fee, c)}</td>
-                        <td className={sign(l.realized)}>
-                          {money(l.realized, c)}
+                        <td>
+                          <PnL value={l.realized} currency={c} />
                         </td>
                         <td>{money(l.basis_after, c)}</td>
                         <td>
@@ -2058,8 +2112,14 @@ function PreviewPanel({
         )
         .map((v) => (
           <div className="notice" key={v.position.id}>
-            <strong>{v.instrument.symbol}</strong> · remaining{" "}
-            {quantity(v.quantity)} · basis{" "}
+            <span className="position-name">
+              <strong>{v.instrument.symbol}</strong>
+              <InstrumentBadge
+                asset={v.instrument.asset}
+                right={v.instrument.option_right}
+              />
+            </span>{" "}
+            · remaining {quantity(v.quantity)} · basis{" "}
             {money(v.basis, v.instrument.currency)} · realized{" "}
             {money(v.realized, v.instrument.currency)} · total P/L{" "}
             {money(v.total_pl, v.instrument.currency)}
@@ -2152,15 +2212,18 @@ function ConsolidationPanel({ data: c }: { data: Consolidated }) {
         <Metric
           title="Investment gain"
           value={money(c.performance.investment_gain, c.currency)}
+          tone={sign(c.performance.investment_gain)}
         />
         <Metric
           title="Time-weighted return"
           value={percent(c.performance.twr)}
+          tone={sign(c.performance.twr)}
           note={c.performance.twr_method}
         />
         <Metric
           title="Money-weighted return"
           value={percent(c.performance.xirr)}
+          tone={sign(c.performance.xirr)}
           note={c.performance.xirr_status}
         />
       </div>
@@ -2209,7 +2272,9 @@ function ConsolidationPanel({ data: c }: { data: Consolidated }) {
       <dl className="facts">
         <div>
           <dt>Position P/L in reporting currency</dt>
-          <dd>{money(c.position_pl, c.currency)}</dd>
+          <dd>
+            <PnL value={c.position_pl} currency={c.currency} />
+          </dd>
         </div>
         <div>
           <dt>Income / expenses at event-date FX</dt>
