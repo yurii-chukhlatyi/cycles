@@ -1,0 +1,74 @@
+name: Desktop checks and installers
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.1.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: pnpm install --frozen-lockfile
+      - run: cargo fmt --all --check
+      - run: cargo test --workspace --locked
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm test:desktop
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-evidence-${{ matrix.os }}
+          path: test-results/native/
+          if-no-files-found: error
+      - run: pnpm tauri build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Cycles-${{ matrix.os }}
+          path: |
+            target/release/bundle/dmg/*.dmg
+            target/release/bundle/macos/*.app
+            target/release/bundle/nsis/*.exe
+            target/release/bundle/msi/*.msi
+          if-no-files-found: error
+
+  restore-macos-backup-on-windows:
+    needs: verify
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.1.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-evidence-macos-latest
+          path: macos-backup
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:desktop
+        env:
+          CYCLES_RESTORE_FIXTURE: macos-backup/backup.xlsx
+          CYCLES_RESTORE_EXPECTED: macos-backup/expected.json

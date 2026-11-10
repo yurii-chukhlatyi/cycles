@@ -11,3 +11,8 @@
 /test-results/
 
 *.tsbuildinfo
+
+dist-e2e/
+src-tauri/gen/
+
+/logs/

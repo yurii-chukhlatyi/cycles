@@ -1,0 +1,21 @@
+{
+  "identifier": "com.portfolio.cycles.e2e",
+  "build": {
+    "beforeBuildCommand": "pnpm build:e2e",
+    "frontendDist": "../dist-e2e"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "security": {
+      "capabilities": [
+        "main",
+        {
+          "identifier": "wdio-test",
+          "windows": ["main"],
+          "permissions": ["wdio:default", "wdio-webdriver:default"]
+        }
+      ],
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src ipc: http://ipc.localhost; font-src 'self' data:"
+    }
+  }
+}

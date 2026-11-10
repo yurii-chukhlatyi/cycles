@@ -1,0 +1,598 @@
+{
+  "status": "complete",
+  "verdict": "Not ready",
+  "scope": {
+    "base": "dacd226",
+    "branch": "feat/portfolio-cycle-app",
+    "head_sha": "dacd2268257d277df13c0869c8f8eb9cd2ef5cf4",
+    "pr_url": null,
+    "files_changed": 69
+  },
+  "intent": "Build Cycles, a macOS/Windows desktop portfolio tracker backed by Google Sheets or local XLSX. The app owns all accounting, validation, cash allocation, permanent cycle/position ownership, stock/option settlement, dated performance/risk, migration and backup. Verify the explicit implementation plan, economic invariants, immutable command replay, failure recovery, native IPC and renderer behavior. Existing tracker inputs must remain intact.\n",
+  "intent_confidence": "explicit",
+  "reviewers": [
+    "correctness",
+    "testing",
+    "maintainability",
+    "security",
+    "performance",
+    "data-migration",
+    "reliability",
+    "frontend-races",
+    "adversarial"
+  ],
+  "findings": [
+    {
+      "#": 1,
+      "autofix_class": "manual",
+      "confidence": 100,
+      "evidence": [
+        "package.json:12 -- \"test\": \"vitest run\",",
+        "Explicit plan U4 and U8 / Verification Contract require pnpm test:desktop and pnpm test:google-live."
+      ],
+      "file": "package.json",
+      "first_evidence": "package.json:12 -- \"test\": \"vitest run\",",
+      "independent_reviewers": [],
+      "line": 12,
+      "owner": "downstream-resolver",
+      "pre_existing": false,
+      "requires_verification": true,
+      "reviewers": [
+        "testing"
+      ],
+      "severity": "P1",
+      "suggested_fix": "Add the planned feature-gated WDIO embedded-driver setup, native workflow suites and scripts, and an explicitly opted-in live Google parity/concurrency suite. Keep test drivers and credentials out of normal release bundles.",
+      "title": "Native and live acceptance harnesses are missing",
+      "why_it_matters": "The explicit U4/U8 plan requires runnable native desktop and disposable live-Google suites. The repository currently exposes only Vitest and core/adapter checks; credentials can prevent a live run, but they do not explain missing harness code. CI therefore cannot exercise the planned native boundary on Windows or Mac.",
+      "validation_status": "confirmed",
+      "validation_reason": "Re-inspected the quoted source and its Rust/renderer callers in the current staged tree. The trigger is reachable through the source/import/editor UI. Incidence was not measured independently; the baseline Number rounding was reproduced read-only on Node 22.13.1. Validation was inline as required by the user."
+    },
+    {
+      "#": 2,
+      "autofix_class": "gated_auto",
+      "confidence": 75,
+      "evidence": [
+        "crates/portfolio-storage/src/legacy.rs:524 -- m.order = i64::MAX;"
+      ],
+      "file": "crates/portfolio-storage/src/legacy.rs",
+      "first_evidence": "crates/portfolio-storage/src/legacy.rs:524 -- m.order = i64::MAX;",
+      "independent_reviewers": [],
+      "line": 524,
+      "owner": "downstream-resolver",
+      "pre_existing": false,
+      "requires_verification": true,
+      "reviewers": [
+        "data-migration"
+      ],
+      "severity": "P1",
+      "suggested_fix": "Use a documented JavaScript-safe closing baseline ordinal; exclude baseline anchors from normal transaction sequence defaults and test import/edit ordering.",
+      "title": "Imported baseline orders overflow renderer integers",
+      "why_it_matters": "An imported baseline order cannot round-trip through JavaScript Number. Editing that cash row or deriving a new same-date order rounds it beyond i64 and native deserialization rejects the save. The read-only Node reproduction returned safe=false and rounded 9223372036854775807 to 9223372036854776000.",
+      "validation_status": "confirmed",
+      "validation_reason": "Re-inspected the quoted source and its Rust/renderer callers in the current staged tree. The trigger is reachable through the source/import/editor UI. Incidence was not measured independently; the baseline Number rounding was reproduced read-only on Node 22.13.1. Validation was inline as required by the user."
+    },
+    {
+      "#": 3,
+      "autofix_class": "gated_auto",
+      "confidence": 75,
+      "evidence": [
+        "src/App.tsx:137 -- setPreview(undefined);",
+        "src/Forms.tsx:416 -- <form onSubmit={submit} className=\"editor-form\">",
+        "src/App.tsx:312 -- <div className=\"main-shell\" inert={!!(editor || legacy)}>"
+      ],
+      "file": "src/App.tsx",
+      "first_evidence": "src/App.tsx:137 -- setPreview(undefined);",
+      "independent_reviewers": [],
+      "line": 137,
+      "owner": "downstream-resolver",
+      "pre_existing": false,
+      "requires_verification": true,
+      "reviewers": [
+        "frontend-races"
+      ],
+      "severity": "P1",
+      "suggested_fix": "Disable inputs and background mutations during operations, and add a delayed-preview UI test showing the draft cannot change until the matching preview returns.",
+      "title": "Preview can outlive a changed transaction draft",
+      "why_it_matters": "While a preview request is pending, form inputs remain editable. A later field change clears the current preview, then the older async response installs its command; saving can commit values different from the visible fields. Background source/filter controls can also overlap in-flight commands.",
+      "validation_status": "confirmed",
+      "validation_reason": "Re-inspected the quoted source and its Rust/renderer callers in the current staged tree. The trigger is reachable through the source/import/editor UI. Incidence was not measured independently; the baseline Number rounding was reproduced read-only on Node 22.13.1. Validation was inline as required by the user."
+    },
+    {
+      "#": 4,
+      "autofix_class": "gated_auto",
+      "confidence": 75,
+      "evidence": [
+        "crates/portfolio-storage/src/legacy.rs:165 -- let currency = if text(row, 29).is_empty() {"
+      ],
+      "file": "crates/portfolio-storage/src/legacy.rs",
+      "first_evidence": "crates/portfolio-storage/src/legacy.rs:165 -- let currency = if text(row, 29).is_empty() {",
+      "independent_reviewers": [],
+      "line": 165,
+      "owner": "downstream-resolver",
+      "pre_existing": false,
+      "requires_verification": true,
+      "reviewers": [
+        "data-migration"
+      ],
+      "severity": "P2",
+      "suggested_fix": "Reject missing currency and unknown direction/option-right inputs with the position ID; preserve owner-correctable raw input instead of assigning defaults.",
+      "title": "Missing legacy facts silently become USD calls",
+      "why_it_matters": "A supported row with a missing currency is silently valued in USD; an unrecognized option right becomes a call. These choices change P/L and obligations without a reconciliation decision.",
+      "validation_status": "confirmed",
+      "validation_reason": "Re-inspected the quoted source and its Rust/renderer callers in the current staged tree. The trigger is reachable through the source/import/editor UI. Incidence was not measured independently; the baseline Number rounding was reproduced read-only on Node 22.13.1. Validation was inline as required by the user."
+    },
+    {
+      "#": 5,
+      "autofix_class": "gated_auto",
+      "confidence": 75,
+      "evidence": [
+        "src/App.tsx:125 -- setState(result);"
+      ],
+      "file": "src/App.tsx",
+      "first_evidence": "src/App.tsx:125 -- setState(result);",
+      "independent_reviewers": [],
+      "line": 125,
+      "owner": "downstream-resolver",
+      "pre_existing": false,
+      "requires_verification": true,
+      "reviewers": [
+        "correctness"
+      ],
+      "severity": "P2",
+      "suggested_fix": "Clear cycle/account/period selections when opening a different dataset, and add a UI source-switch regression test.",
+      "title": "Source changes retain incompatible cycle filters",
+      "why_it_matters": "Opening another dataset leaves the old cycle/account IDs in the filter. Native reports for those unknown IDs are empty, while the new dropdown has no matching option; a populated source can appear empty until manually resetting filters.",
+      "validation_status": "confirmed",
+      "validation_reason": "Re-inspected the quoted source and its Rust/renderer callers in the current staged tree. The trigger is reachable through the source/import/editor UI. Incidence was not measured independently; the baseline Number rounding was reproduced read-only on Node 22.13.1. Validation was inline as required by the user."
+    },
+    {
+      "#": 6,
+      "autofix_class": "gated_auto",
+      "confidence": 75,
+      "evidence": [
+        "src/App.tsx:241 -- const totals = report?.totals.find((t) => t.currency === currency);"
+      ],
+      "file": "src/App.tsx",
+      "first_evidence": "src/App.tsx:241 -- const totals = report?.totals.find((t) => t.currency === currency);",
+      "independent_reviewers": [],
+      "line": 241,
+      "owner": "downstream-resolver",
+      "pre_existing": false,
+      "requires_verification": true,
+      "reviewers": [
+        "correctness"
+      ],
+      "severity": "P2",
+      "suggested_fix": "Render both net external contributions and net capital allocated to the selected scope, using the Rust totals without renderer arithmetic.",
+      "title": "Overview omits contributed capital totals",
+      "why_it_matters": "The engine returns net external contributions and cycle capital movements, but the overview renders neither total. The chart baseline is not an independently identifiable total contribution amount, so R29 and flow attribution remain incomplete in the primary screen.",
+      "validation_status": "confirmed",
+      "validation_reason": "Re-inspected the quoted source and its Rust/renderer callers in the current staged tree. The trigger is reachable through the source/import/editor UI. Incidence was not measured independently; the baseline Number rounding was reproduced read-only on Node 22.13.1. Validation was inline as required by the user."
+    }
+  ],
+  "actionable_findings": [
+    {
+      "#": 1,
+      "autofix_class": "manual",
+      "confidence": 100,
+      "evidence": [
+        "package.json:12 -- \"test\": \"vitest run\",",
+        "Explicit plan U4 and U8 / Verification Contract require pnpm test:desktop and pnpm test:google-live."
+      ],
+      "file": "package.json",
+      "first_evidence": "package.json:12 -- \"test\": \"vitest run\",",
+      "independent_reviewers": [],
+      "line": 12,
+      "owner": "downstream-resolver",
+      "pre_existing": false,
+      "requires_verification": true,
+      "reviewers": [
+        "testing"
+      ],
+      "severity": "P1",
+      "suggested_fix": "Add the planned feature-gated WDIO embedded-driver setup, native workflow suites and scripts, and an explicitly opted-in live Google parity/concurrency suite. Keep test drivers and credentials out of normal release bundles.",
+      "title": "Native and live acceptance harnesses are missing",
+      "why_it_matters": "The explicit U4/U8 plan requires runnable native desktop and disposable live-Google suites. The repository currently exposes only Vitest and core/adapter checks; credentials can prevent a live run, but they do not explain missing harness code. CI therefore cannot exercise the planned native boundary on Windows or Mac.",
+      "validation_status": "confirmed",
+      "validation_reason": "Re-inspected the quoted source and its Rust/renderer callers in the current staged tree. The trigger is reachable through the source/import/editor UI. Incidence was not measured independently; the baseline Number rounding was reproduced read-only on Node 22.13.1. Validation was inline as required by the user."
+    },
+    {
+      "#": 2,
+      "autofix_class": "gated_auto",
+      "confidence": 75,
+      "evidence": [
+        "crates/portfolio-storage/src/legacy.rs:524 -- m.order = i64::MAX;"
+      ],
+      "file": "crates/portfolio-storage/src/legacy.rs",
+      "first_evidence": "crates/portfolio-storage/src/legacy.rs:524 -- m.order = i64::MAX;",
+      "independent_reviewers": [],
+      "line": 524,
+      "owner": "downstream-resolver",
+      "pre_existing": false,
+      "requires_verification": true,
+      "reviewers": [
+        "data-migration"
+      ],
+      "severity": "P1",
+      "suggested_fix": "Use a documented JavaScript-safe closing baseline ordinal; exclude baseline anchors from normal transaction sequence defaults and test import/edit ordering.",
+      "title": "Imported baseline orders overflow renderer integers",
+      "why_it_matters": "An imported baseline order cannot round-trip through JavaScript Number. Editing that cash row or deriving a new same-date order rounds it beyond i64 and native deserialization rejects the save. The read-only Node reproduction returned safe=false and rounded 9223372036854775807 to 9223372036854776000.",
+      "validation_status": "confirmed",
+      "validation_reason": "Re-inspected the quoted source and its Rust/renderer callers in the current staged tree. The trigger is reachable through the source/import/editor UI. Incidence was not measured independently; the baseline Number rounding was reproduced read-only on Node 22.13.1. Validation was inline as required by the user."
+    },
+    {
+      "#": 3,
+      "autofix_class": "gated_auto",
+      "confidence": 75,
+      "evidence": [
+        "src/App.tsx:137 -- setPreview(undefined);",
+        "src/Forms.tsx:416 -- <form onSubmit={submit} className=\"editor-form\">",
+        "src/App.tsx:312 -- <div className=\"main-shell\" inert={!!(editor || legacy)}>"
+      ],
+      "file": "src/App.tsx",
+      "first_evidence": "src/App.tsx:137 -- setPreview(undefined);",
+      "independent_reviewers": [],
+      "line": 137,
+      "owner": "downstream-resolver",
+      "pre_existing": false,
+      "requires_verification": true,
+      "reviewers": [
+        "frontend-races"
+      ],
+      "severity": "P1",
+      "suggested_fix": "Disable inputs and background mutations during operations, and add a delayed-preview UI test showing the draft cannot change until the matching preview returns.",
+      "title": "Preview can outlive a changed transaction draft",
+      "why_it_matters": "While a preview request is pending, form inputs remain editable. A later field change clears the current preview, then the older async response installs its command; saving can commit values different from the visible fields. Background source/filter controls can also overlap in-flight commands.",
+      "validation_status": "confirmed",
+      "validation_reason": "Re-inspected the quoted source and its Rust/renderer callers in the current staged tree. The trigger is reachable through the source/import/editor UI. Incidence was not measured independently; the baseline Number rounding was reproduced read-only on Node 22.13.1. Validation was inline as required by the user."
+    },
+    {
+      "#": 4,
+      "autofix_class": "gated_auto",
+      "confidence": 75,
+      "evidence": [
+        "crates/portfolio-storage/src/legacy.rs:165 -- let currency = if text(row, 29).is_empty() {"
+      ],
+      "file": "crates/portfolio-storage/src/legacy.rs",
+      "first_evidence": "crates/portfolio-storage/src/legacy.rs:165 -- let currency = if text(row, 29).is_empty() {",
+      "independent_reviewers": [],
+      "line": 165,
+      "owner": "downstream-resolver",
+      "pre_existing": false,
+      "requires_verification": true,
+      "reviewers": [
+        "data-migration"
+      ],
+      "severity": "P2",
+      "suggested_fix": "Reject missing currency and unknown direction/option-right inputs with the position ID; preserve owner-correctable raw input instead of assigning defaults.",
+      "title": "Missing legacy facts silently become USD calls",
+      "why_it_matters": "A supported row with a missing currency is silently valued in USD; an unrecognized option right becomes a call. These choices change P/L and obligations without a reconciliation decision.",
+      "validation_status": "confirmed",
+      "validation_reason": "Re-inspected the quoted source and its Rust/renderer callers in the current staged tree. The trigger is reachable through the source/import/editor UI. Incidence was not measured independently; the baseline Number rounding was reproduced read-only on Node 22.13.1. Validation was inline as required by the user."
+    },
+    {
+      "#": 5,
+      "autofix_class": "gated_auto",
+      "confidence": 75,
+      "evidence": [
+        "src/App.tsx:125 -- setState(result);"
+      ],
+      "file": "src/App.tsx",
+      "first_evidence": "src/App.tsx:125 -- setState(result);",
+      "independent_reviewers": [],
+      "line": 125,
+      "owner": "downstream-resolver",
+      "pre_existing": false,
+      "requires_verification": true,
+      "reviewers": [
+        "correctness"
+      ],
+      "severity": "P2",
+      "suggested_fix": "Clear cycle/account/period selections when opening a different dataset, and add a UI source-switch regression test.",
+      "title": "Source changes retain incompatible cycle filters",
+      "why_it_matters": "Opening another dataset leaves the old cycle/account IDs in the filter. Native reports for those unknown IDs are empty, while the new dropdown has no matching option; a populated source can appear empty until manually resetting filters.",
+      "validation_status": "confirmed",
+      "validation_reason": "Re-inspected the quoted source and its Rust/renderer callers in the current staged tree. The trigger is reachable through the source/import/editor UI. Incidence was not measured independently; the baseline Number rounding was reproduced read-only on Node 22.13.1. Validation was inline as required by the user."
+    },
+    {
+      "#": 6,
+      "autofix_class": "gated_auto",
+      "confidence": 75,
+      "evidence": [
+        "src/App.tsx:241 -- const totals = report?.totals.find((t) => t.currency === currency);"
+      ],
+      "file": "src/App.tsx",
+      "first_evidence": "src/App.tsx:241 -- const totals = report?.totals.find((t) => t.currency === currency);",
+      "independent_reviewers": [],
+      "line": 241,
+      "owner": "downstream-resolver",
+      "pre_existing": false,
+      "requires_verification": true,
+      "reviewers": [
+        "correctness"
+      ],
+      "severity": "P2",
+      "suggested_fix": "Render both net external contributions and net capital allocated to the selected scope, using the Rust totals without renderer arithmetic.",
+      "title": "Overview omits contributed capital totals",
+      "why_it_matters": "The engine returns net external contributions and cycle capital movements, but the overview renders neither total. The chart baseline is not an independently identifiable total contribution amount, so R29 and flow attribution remain incomplete in the primary screen.",
+      "validation_status": "confirmed",
+      "validation_reason": "Re-inspected the quoted source and its Rust/renderer callers in the current staged tree. The trigger is reachable through the source/import/editor UI. Incidence was not measured independently; the baseline Number rounding was reproduced read-only on Node 22.13.1. Validation was inline as required by the user."
+    }
+  ],
+  "triage_groups": [],
+  "pre_existing_findings": [],
+  "requirements_completeness": {
+    "requirements": [
+      {
+        "id": "R1",
+        "status": "partial",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R2",
+        "status": "partial",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R3",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R4",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R5",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R6",
+        "status": "partial",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R7",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R8",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R9",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R10",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R11",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R12",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R13",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R14",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R15",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R16",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R17",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R18",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R19",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R20",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R21",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R22",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R23",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R24",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R25",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R26",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R27",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R28",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R29",
+        "status": "partial",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R30",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R31",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R32",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R33",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R34",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R35",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R36",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R37",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R38",
+        "status": "implementation-present",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R39",
+        "status": "partial",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R40",
+        "status": "partial",
+        "note": "Verification limits and the retained findings apply."
+      },
+      {
+        "id": "R41",
+        "status": "partial",
+        "note": "Verification limits and the retained findings apply."
+      }
+    ],
+    "implementation_units": [
+      {
+        "id": "U1",
+        "status": "implementation-present"
+      },
+      {
+        "id": "U2",
+        "status": "implementation-present"
+      },
+      {
+        "id": "U3",
+        "status": "implementation-present"
+      },
+      {
+        "id": "U4",
+        "status": "partial"
+      },
+      {
+        "id": "U5",
+        "status": "implementation-present"
+      },
+      {
+        "id": "U6",
+        "status": "partial"
+      },
+      {
+        "id": "U7",
+        "status": "partial"
+      },
+      {
+        "id": "U8",
+        "status": "partial"
+      }
+    ],
+    "unrequested_behavior_rules": []
+  },
+  "learnings": [],
+  "deployment_notes": [],
+  "residual_risks": [],
+  "testing_gaps": [
+    "Live Google OAuth, create/reconnect/export round-trip and two-device concurrency need an owner OAuth client/account. Native Windows build/launch and installers require a Windows runner; no remote is configured. The macOS native save/partial-close smoke check has run.",
+    "The importer has a 1900-date fixture but no 1904 workbook integration case yet."
+  ],
+  "coverage": {
+    "depth": "full",
+    "execution": "Inline sequential review per user instructions. No independence claimed.",
+    "independent_reviewers": [],
+    "validator": "6 findings re-inspected inline; no separate-context validation.",
+    "review_policy": {
+      "sources": [],
+      "removed": 0,
+      "regraded": 0,
+      "not_applied": []
+    },
+    "compound_packs": {
+      "roots": [],
+      "errors": [],
+      "warnings": []
+    }
+  },
+  "peer": {
+    "outcome": "in-process-fallback",
+    "coverage": "Cross-model pass: not run. The user requires all reviewer work sequentially in the main thread."
+  },
+  "artifact_path": "/tmp/compound-engineering-502/ce-code-review/20261109-190110-fc85c3ab",
+  "run_id": "20261109-190110-fc85c3ab"
+}

@@ -1,0 +1,50 @@
+{
+  "review_status": "complete",
+  "review_verdict_before_fixes": "Not ready",
+  "review_run_id": "20261109-190110-fc85c3ab",
+  "review_method": "Sequential inline skill review, as required by the user AGENTS tool mapping; no independent reviewer coverage.",
+  "resolutions": [
+    {
+      "number": 1,
+      "title": "Native and live acceptance harnesses are missing",
+      "resolution": "Added an isolated optional-feature WebdriverIO desktop harness, explicit opt-in Google live integration suite, and Mac/Windows CI with cross-platform backup restoration. Mac workflow passes; Windows and live Google remain unverified pending external prerequisites.",
+      "status": "implementation_complete_external_acceptance_pending"
+    },
+    {
+      "number": 2,
+      "title": "Imported baseline orders overflow renderer integers",
+      "resolution": "Imported report-date cash anchors use a portable 32-bit sequence; automatic transaction order excludes baseline anchors. Rust rejects event orders outside the exact JavaScript integer range. Tests cover both Excel date epochs, baseline import and native JSON ordering.",
+      "status": "resolved"
+    },
+    {
+      "number": 3,
+      "title": "Preview can outlive a changed transaction draft",
+      "resolution": "Disable entry fields, import allocations, modal closure and background navigation while an operation is pending. Delayed-preview and import preparation component tests verify the lock.",
+      "status": "resolved"
+    },
+    {
+      "number": 4,
+      "title": "Missing legacy facts silently become USD calls",
+      "resolution": "Reject missing currency, unknown direction or unknown option right rather than guessing economic facts. Real workbook regression fixtures verify each rejection.",
+      "status": "resolved"
+    },
+    {
+      "number": 5,
+      "title": "Source changes retain incompatible cycle filters",
+      "resolution": "Clear cycle/account/currency filters and expanded positions when selecting a different source. Component test verifies incompatible filters do not survive dataset replacement.",
+      "status": "resolved"
+    },
+    {
+      "number": 6,
+      "title": "Overview omits contributed capital totals",
+      "resolution": "Show net external contributions and net capital allocated in the native-currency overview alongside position P/L and the growth chart.",
+      "status": "resolved"
+    }
+  ],
+  "unresolved_implementation_findings": [],
+  "external_verification_outstanding": [
+    "Windows native run and installer launch",
+    "Live Google OAuth/Sheets integration with owner credentials",
+    "Developer ID signing/notarization and Windows signing"
+  ]
+}

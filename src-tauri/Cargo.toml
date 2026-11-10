@@ -1,0 +1,31 @@
+[package]
+name = "portfolio-cycle-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+[lib]
+name = "portfolio_cycle_app"
+crate-type = ["staticlib", "cdylib", "rlib"]
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+[features]
+default = []
+e2e = ["dep:tauri-plugin-wdio", "dep:tauri-plugin-wdio-webdriver"]
+[dependencies]
+tauri-plugin-wdio = { version = "=1.5.1", optional = true }
+tauri-plugin-wdio-webdriver = { version = "=1.5.1", optional = true }
+portfolio-core = { path = "../crates/portfolio-core" }
+portfolio-storage = { path = "../crates/portfolio-storage" }
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+tokio = { version = "1", features = ["sync", "rt-multi-thread"] }
+keyring = { version = "3.6", features = ["apple-native", "windows-native"] }
+rust_decimal.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
