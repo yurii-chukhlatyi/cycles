@@ -537,26 +537,28 @@ export default function App() {
                 </select>
               </label>
               <label>
-                As of
+                From
                 <input
                   disabled={!desktop}
-                  aria-label="As of date"
-                  type="date"
-                  value={filter.as_of}
-                  onChange={(e) =>
-                    setFilter({ ...filter, as_of: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Period start
-                <input
-                  disabled={!desktop}
-                  aria-label="Period start"
+                  aria-label="From date"
+                  title="Optional. Leave empty to use all available history."
                   type="date"
                   value={filter.from ?? ""}
                   onChange={(e) =>
                     setFilter({ ...filter, from: e.target.value || undefined })
+                  }
+                />
+              </label>
+              <label>
+                To
+                <input
+                  disabled={!desktop}
+                  aria-label="To date"
+                  title="Show portfolio values through this date."
+                  type="date"
+                  value={filter.as_of}
+                  onChange={(e) =>
+                    setFilter({ ...filter, as_of: e.target.value })
                   }
                 />
               </label>
@@ -619,7 +621,7 @@ export default function App() {
                         No recorded activity for this date and selection.
                       </strong>
                       <br />
-                      Choose a later As of date or adjust the cycle/account
+                      Choose a later end date or adjust the cycle/account
                       filters. Values remain unavailable until this view has
                       recorded data.
                     </div>

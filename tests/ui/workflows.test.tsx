@@ -420,7 +420,7 @@ it("keeps the overview and currency controls when As of precedes the first cycle
   render(<App />);
   await screen.findByRole("heading", { name: "Portfolio overview" });
   await user.click(screen.getByRole("button", { name: "CAD" }));
-  fireEvent.change(screen.getByLabelText("As of date"), {
+  fireEvent.change(screen.getByLabelText("To date"), {
     target: { value: "2020-01-01" },
   });
   await waitFor(() =>
@@ -457,7 +457,7 @@ it("keeps the overview and currency controls when As of precedes the first cycle
     "true",
   );
   await user.click(screen.getByRole("button", { name: "CAD" }));
-  fireEvent.change(screen.getByLabelText("As of date"), {
+  fireEvent.change(screen.getByLabelText("To date"), {
     target: { value: "2026-11-09" },
   });
   await waitFor(() =>
