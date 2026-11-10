@@ -319,28 +319,26 @@ it("switches Positions between CAD and USD native-currency rows", async () => {
   const currencies = within(
     screen.getByRole("group", { name: "Display currency" }),
   );
-  await user.click(
-    currencies.getByRole("button", { name: "CAD" }),
-  );
+  await user.click(currencies.getByRole("button", { name: "CAD" }));
   expect(
     screen.queryByRole("button", { name: /ACME/ }),
   ).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: /MAPLE/ })).toBeVisible();
   expect(screen.getByText("1 CAD positions")).toBeVisible();
-  expect(
-    currencies.getByRole("button", { name: "CAD" }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await user.click(
-    currencies.getByRole("button", { name: "USD" }),
+  expect(currencies.getByRole("button", { name: "CAD" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
   );
+  await user.click(currencies.getByRole("button", { name: "USD" }));
   expect(screen.getByRole("button", { name: /ACME/ })).toBeVisible();
   expect(
     screen.queryByRole("button", { name: /MAPLE/ }),
   ).not.toBeInTheDocument();
   expect(screen.getByText("1 USD positions")).toBeVisible();
-  expect(
-    currencies.getByRole("button", { name: "CAD" }),
-  ).toHaveAttribute("aria-pressed", "false");
+  expect(currencies.getByRole("button", { name: "CAD" })).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
 });
 
 it("combines position currency with search and open/closed filters", async () => {
@@ -396,4 +394,80 @@ it("combines position currency with search and open/closed filters", async () =>
   expect(
     screen.getByRole("heading", { name: "No CAD positions in this view" }),
   ).toBeVisible();
+});
+
+it("keeps the overview and currency controls when As of precedes the first cycle", async () => {
+  const early = structuredClone(state);
+  early.consolidated = undefined;
+  early.report = {
+    ...early.report,
+    as_of: "2020-01-01",
+    cash_balances: [],
+    positions: [],
+    totals: [],
+    history: [],
+    performance: [],
+    attribution: [],
+    asset_volatility: [],
+    allocation: [],
+    warnings: [],
+  };
+  call.mockImplementation(
+    async (_action: string, payload?: { filter?: { as_of?: string } }) =>
+      payload?.filter?.as_of === "2020-01-01" ? early : state,
+  );
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByRole("heading", { name: "Portfolio overview" });
+  await user.click(screen.getByRole("button", { name: "CAD" }));
+  fireEvent.change(screen.getByLabelText("As of date"), {
+    target: { value: "2020-01-01" },
+  });
+  await waitFor(() =>
+    expect(
+      screen.getAllByText("Portfolio equity")[0].closest(".metric"),
+    ).toHaveTextContent("Unavailable"),
+  );
+  for (const title of ["Total position P/L", "Realized P/L", "Unrealized P/L"])
+    expect(screen.getByText(title).closest(".metric")).toHaveTextContent(
+      "Unavailable",
+    );
+  for (const title of [
+    "Capital & growth",
+    "Strategy performance",
+    "Exposure & data coverage",
+    "Allocation & concentration",
+  ])
+    expect(screen.getByRole("heading", { name: title })).toBeVisible();
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "No recorded activity for this date and selection",
+  );
+  expect(screen.getByRole("button", { name: "CAD" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await user.click(screen.getByRole("button", { name: "Positions" }));
+  expect(
+    screen.getByRole("heading", { name: "No CAD positions in this view" }),
+  ).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Overview" }));
+  await user.click(screen.getByRole("button", { name: "USD" }));
+  expect(screen.getByRole("button", { name: "USD" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await user.click(screen.getByRole("button", { name: "CAD" }));
+  fireEvent.change(screen.getByLabelText("As of date"), {
+    target: { value: "2026-11-09" },
+  });
+  await waitFor(() =>
+    expect(screen.queryByRole("status")).not.toBeInTheDocument(),
+  );
+  expect(
+    screen.getAllByText("Portfolio equity")[0].closest(".metric"),
+  ).not.toHaveTextContent("Unavailable");
+  expect(screen.getByRole("button", { name: "CAD" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
 });

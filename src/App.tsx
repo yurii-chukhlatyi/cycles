@@ -256,9 +256,16 @@ export default function App() {
   }
   const p = state?.portfolio;
   const report = state?.report;
-  const currency = report?.totals.some((t) => t.currency === ccy)
-    ? ccy
-    : (report?.totals[0]?.currency ?? "USD");
+  const currencies = report?.totals.length
+    ? report.totals.map((t) => t.currency)
+    : [
+        ...new Set(
+          (p?.accounts ?? [])
+            .filter((a) => !filter.account_id || a.id === filter.account_id)
+            .flatMap((a) => a.currencies),
+        ),
+      ].sort();
+  const currency = currencies.includes(ccy) ? ccy : (currencies[0] ?? "USD");
   const totals = report?.totals.find((t) => t.currency === currency);
   const performance = report?.performance.find((t) => t.currency === currency);
   const visible =
@@ -558,19 +565,19 @@ export default function App() {
                 role="group"
                 aria-label="Display currency"
               >
-                {report.totals.map((t) => (
+                {currencies.map((unit) => (
                   <button
-                    className={currency === t.currency ? "active" : ""}
-                    aria-pressed={currency === t.currency}
+                    className={currency === unit ? "active" : ""}
+                    aria-pressed={currency === unit}
                     title={
                       page === "Positions"
-                        ? `Show ${t.currency} positions in their native currency`
+                        ? `Show ${unit} positions in their native currency`
                         : undefined
                     }
-                    key={t.currency}
-                    onClick={() => setCcy(t.currency)}
+                    key={unit}
+                    onClick={() => setCcy(unit)}
                   >
-                    {t.currency}
+                    {unit}
                   </button>
                 ))}
               </div>
@@ -604,35 +611,50 @@ export default function App() {
             </section>
           ) : (
             <>
-              {page === "Overview" && totals && (
+              {page === "Overview" && (
                 <>
+                  {!totals && (
+                    <div className="notice" role="status">
+                      <strong>
+                        No recorded activity for this date and selection.
+                      </strong>
+                      <br />
+                      Choose a later As of date or adjust the cycle/account
+                      filters. Values remain unavailable until this view has
+                      recorded data.
+                    </div>
+                  )}
                   <div className="metrics-grid">
                     <Metric
                       title="Portfolio equity"
-                      value={money(totals.equity, currency)}
-                      note={`${totals.open_positions} open positions · ${currency}`}
+                      value={money(totals?.equity, currency)}
+                      note={
+                        totals
+                          ? `${totals.open_positions} open positions · ${currency}`
+                          : `No activity in this view · ${currency}`
+                      }
                     />
                     <Metric
                       title="Total position P/L"
-                      value={money(totals.total_pl, currency)}
+                      value={money(totals?.total_pl, currency)}
                       note="Realized + unrealized · retained history"
-                      tone={sign(totals.total_pl)}
+                      tone={sign(totals?.total_pl)}
                     />
                     <Metric
                       title="Realized P/L"
-                      value={money(totals.realized, currency)}
+                      value={money(totals?.realized, currency)}
                       note="Includes transaction fees"
-                      tone={sign(totals.realized)}
+                      tone={sign(totals?.realized)}
                     />
                     <Metric
                       title="Unrealized P/L"
-                      value={money(totals.unrealized, currency)}
+                      value={money(totals?.unrealized, currency)}
                       note={
-                        totals.missing_quotes
-                          ? `${totals.missing_quotes} missing quote(s)`
+                        totals?.missing_quotes
+                          ? `${totals?.missing_quotes} missing quote(s)`
                           : "Open positions at dated marks"
                       }
-                      tone={sign(totals.unrealized)}
+                      tone={sign(totals?.unrealized)}
                     />
                   </div>
                   <section className="panel chart-panel">
@@ -789,7 +811,7 @@ export default function App() {
                       {filter.from && (
                         <p className="hint">
                           Position P/L for the selected period:{" "}
-                          <PnL value={totals.period_pl} currency={currency} />.
+                          <PnL value={totals?.period_pl} currency={currency} />.
                           This includes the change in unrealized value.
                         </p>
                       )}
@@ -803,45 +825,47 @@ export default function App() {
                         <div>
                           <dt>Gross / net exposure</dt>
                           <dd>
-                            {money(totals.gross_exposure, currency)} /{" "}
-                            {money(totals.net_exposure, currency)}
+                            {money(totals?.gross_exposure, currency)} /{" "}
+                            {money(totals?.net_exposure, currency)}
                           </dd>
                         </div>
                         <div>
                           <dt>Planned loss at stops</dt>
-                          <dd>{money(totals.planned_risk, currency)}</dd>
+                          <dd>{money(totals?.planned_risk, currency)}</dd>
                         </div>
                         <div>
                           <dt>Delta exposure</dt>
-                          <dd>{money(totals.delta_exposure, currency)}</dd>
+                          <dd>{money(totals?.delta_exposure, currency)}</dd>
                         </div>
                         <div>
                           <dt>Net external contributions</dt>
                           <dd>
-                            {money(totals.external_contributions, currency)}
+                            {money(totals?.external_contributions, currency)}
                           </dd>
                         </div>
                         <div>
                           <dt>Net capital allocated to this scope</dt>
-                          <dd>{money(totals.contributed, currency)}</dd>
+                          <dd>{money(totals?.contributed, currency)}</dd>
                         </div>
                         <div>
                           <dt>Cash balance</dt>
-                          <dd>{money(totals.cash, currency)}</dd>
+                          <dd>{money(totals?.cash, currency)}</dd>
                         </div>
                         <div>
                           <dt>Income / expenses</dt>
                           <dd>
-                            {money(totals.income, currency)} /{" "}
-                            {money(totals.expenses, currency)}
+                            {money(totals?.income, currency)} /{" "}
+                            {money(totals?.expenses, currency)}
                           </dd>
                         </div>
                       </dl>
-                      <p className="hint">
-                        {totals.missing_stops} open positions without valid
-                        stops · {totals.missing_deltas} without delta evidence.
-                        Short exposure can have unbounded loss.
-                      </p>
+                      {totals && (
+                        <p className="hint">
+                          {totals.missing_stops} open positions without valid
+                          stops · {totals.missing_deltas} without delta
+                          evidence. Short exposure can have unbounded loss.
+                        </p>
+                      )}
                     </section>
                   </div>
                   <section className="panel section-gap">
