@@ -669,17 +669,20 @@ export default function App() {
                               >
                                 <stop
                                   offset="0"
-                                  stopColor="#43765c"
+                                  stopColor="var(--chart-equity)"
                                   stopOpacity={0.16}
                                 />
                                 <stop
                                   offset="1"
-                                  stopColor="#43765c"
+                                  stopColor="var(--chart-equity)"
                                   stopOpacity={0.01}
                                 />
                               </linearGradient>
                             </defs>
-                            <CartesianGrid vertical={false} stroke="#e9ece6" />
+                            <CartesianGrid
+                              vertical={false}
+                              stroke="var(--chart-grid)"
+                            />
                             <XAxis
                               dataKey="date"
                               tickFormatter={(s) => s.slice(5)}
@@ -697,6 +700,7 @@ export default function App() {
                               axisLine={false}
                             />
                             <Tooltip
+                              cursor={{ stroke: "var(--chart-cursor)" }}
                               formatter={(value) =>
                                 money(String(value), currency)
                               }
@@ -705,7 +709,7 @@ export default function App() {
                               type="linear"
                               name="Equity"
                               dataKey="equity"
-                              stroke="#397350"
+                              stroke="var(--chart-equity)"
                               fill="url(#equityFill)"
                               strokeWidth={2}
                               connectNulls={false}
@@ -714,7 +718,7 @@ export default function App() {
                             <Line
                               name="Capital"
                               dataKey="capital"
-                              stroke="#a39b80"
+                              stroke="var(--chart-capital)"
                               dot={false}
                               strokeDasharray="5 5"
                               isAnimationActive={false}
@@ -2169,7 +2173,7 @@ function ConsolidationPanel({ data: c }: { data: Consolidated }) {
               capital: h.capital == null ? null : Number(h.capital),
             }))}
           >
-            <CartesianGrid vertical={false} stroke="#e9ece6" />
+            <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
             <XAxis
               dataKey="date"
               tickFormatter={(d) => d.slice(5)}
@@ -2180,18 +2184,21 @@ function ConsolidationPanel({ data: c }: { data: Consolidated }) {
                 new Intl.NumberFormat("en", { notation: "compact" }).format(v)
               }
             />
-            <Tooltip formatter={(v) => money(String(v), c.currency)} />
+            <Tooltip
+              cursor={{ stroke: "var(--chart-cursor)" }}
+              formatter={(v) => money(String(v), c.currency)}
+            />
             <Line
               dataKey="equity"
               name="Equity"
-              stroke="#397350"
+              stroke="var(--chart-equity)"
               dot={false}
               isAnimationActive={false}
             />
             <Line
               dataKey="capital"
               name="Capital"
-              stroke="#a39b80"
+              stroke="var(--chart-capital)"
               strokeDasharray="5 5"
               dot={false}
               isAnimationActive={false}

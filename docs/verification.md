@@ -52,3 +52,12 @@ The normal dependency tree excludes `tauri-plugin-wdio`. The production binary/f
 The executable has a linker ad hoc signature, with no Developer ID team or notarization. This is not a signed distribution release. A macOS app bundle was built and launched; Windows installers and live Google integration were not exercised.
 
 All six review findings were handled inline; no batches were delegated. Finding 1 has its missing implementation in place while its Windows/live acceptance prerequisites remain pending. No required implementation finding was silently skipped. The original review receipt is preserved as `code-review.json`; it is the pre-fix review, not a second independent approval.
+
+
+## Dark theme update
+
+The interface now uses a Wealthsimple-inspired warm dark palette: charcoal surfaces, soft ivory text, muted gold controls/charts and mint/coral P/L colors. Shared CSS tokens cover the overview, position ledgers, editors, notices, native inputs and chart tooltips. The HTML and native window both select dark appearance.
+
+Verification: the existing 7 UI tests, TypeScript/build and lint pass. The Mac arm64 release build passes and was launched, reopening the same verified workbook at revision 2 with equity 32166 and total position P/L 2166. Browser checks covered the overview, expanded position and entry form at 1280px and 780px desktop widths. A one-off contrast audit checked normal text and semantic text pairs at >=4.5:1; the lowest checked pair was muted text on raised surfaces at 5.55:1. No new behavior tests were added for the styling-only change; visual checks are the primary evidence. Rust accounting and persistence code were not modified.
+
+Code review: skipped (mechanical diff) — color token substitutions, chart presentation, dark appearance configuration and documentation only. Manual diff inspection confirmed calculation expressions, events, data storage and permissions are unchanged. The earlier Windows/live Google verification limitations still apply; this update does not establish those external results.
