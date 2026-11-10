@@ -264,6 +264,7 @@ export default function App() {
   const visible =
     report?.positions.filter(
       (v) =>
+        v.instrument.currency === currency &&
         (!search ||
           `${v.instrument.symbol} ${v.position.id} ${v.position.name}`
             .toLowerCase()
@@ -560,6 +561,12 @@ export default function App() {
                 {report.totals.map((t) => (
                   <button
                     className={currency === t.currency ? "active" : ""}
+                    aria-pressed={currency === t.currency}
+                    title={
+                      page === "Positions"
+                        ? `Show ${t.currency} positions in their native currency`
+                        : undefined
+                    }
                     key={t.currency}
                     onClick={() => setCcy(t.currency)}
                   >
@@ -957,7 +964,9 @@ export default function App() {
                       <option value="open">Open</option>
                       <option value="closed">Closed</option>
                     </select>
-                    <span className="muted">{visible.length} positions</span>
+                    <span className="muted" aria-live="polite">
+                      {visible.length} {currency} positions
+                    </span>
                   </div>
                   <div
                     className="color-legend"
@@ -1020,7 +1029,7 @@ export default function App() {
                   {!visible.length && (
                     <div className="empty">
                       <Layers3 size={28} />
-                      <h3>No positions in this view</h3>
+                      <h3>No {currency} positions in this view</h3>
                       <p>Open a position or adjust the filters.</p>
                     </div>
                   )}

@@ -297,3 +297,103 @@ it("shows option type, lifecycle, and outcomes independently in position rows", 
   expect(within(missingRow).getByText("Missing quote")).toHaveClass("caution");
   expect(within(missingRow).getAllByLabelText("Unavailable")).toHaveLength(2);
 });
+
+it("switches Positions between CAD and USD native-currency rows", async () => {
+  const mixed = structuredClone(state);
+  const usd = mixed.report.positions[0];
+  mixed.report.positions.push({
+    ...usd,
+    position: { ...usd.position, id: "cad-position" },
+    instrument: {
+      ...usd.instrument,
+      id: "cad-stock",
+      symbol: "MAPLE",
+      currency: "CAD",
+    },
+  });
+  call.mockImplementation(async () => mixed);
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByRole("heading", { name: "Portfolio overview" });
+  await user.click(screen.getByRole("button", { name: "Positions" }));
+  const currencies = within(
+    screen.getByRole("group", { name: "Display currency" }),
+  );
+  await user.click(
+    currencies.getByRole("button", { name: "CAD" }),
+  );
+  expect(
+    screen.queryByRole("button", { name: /ACME/ }),
+  ).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /MAPLE/ })).toBeVisible();
+  expect(screen.getByText("1 CAD positions")).toBeVisible();
+  expect(
+    currencies.getByRole("button", { name: "CAD" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await user.click(
+    currencies.getByRole("button", { name: "USD" }),
+  );
+  expect(screen.getByRole("button", { name: /ACME/ })).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: /MAPLE/ }),
+  ).not.toBeInTheDocument();
+  expect(screen.getByText("1 USD positions")).toBeVisible();
+  expect(
+    currencies.getByRole("button", { name: "CAD" }),
+  ).toHaveAttribute("aria-pressed", "false");
+});
+
+it("combines position currency with search and open/closed filters", async () => {
+  const mixed = structuredClone(state);
+  const base = mixed.report.positions[0];
+  mixed.report.positions = [
+    {
+      ...base,
+      position: { ...base.position, id: "usd-closed" },
+      instrument: { ...base.instrument, symbol: "TEST USD" },
+      quantity: "0",
+      status: "Closed",
+    },
+    {
+      ...base,
+      position: { ...base.position, id: "cad-open" },
+      instrument: { ...base.instrument, symbol: "TEST CAD", currency: "CAD" },
+    },
+  ];
+  call.mockImplementation(async () => mixed);
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByRole("heading", { name: "Portfolio overview" });
+  await user.click(screen.getByRole("button", { name: "Positions" }));
+  await user.type(
+    screen.getByRole("textbox", { name: "Search positions" }),
+    "TEST",
+  );
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Position status" }),
+    "closed",
+  );
+  await user.click(screen.getByRole("button", { name: "CAD" }));
+  expect(
+    screen.queryByRole("button", { name: /TEST/ }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", { name: "No CAD positions in this view" }),
+  ).toBeVisible();
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Position status" }),
+    "open",
+  );
+  expect(screen.getByRole("button", { name: /TEST CAD/ })).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: /TEST USD/ }),
+  ).not.toBeInTheDocument();
+  await user.clear(screen.getByRole("textbox", { name: "Search positions" }));
+  await user.type(
+    screen.getByRole("textbox", { name: "Search positions" }),
+    "USD",
+  );
+  expect(
+    screen.getByRole("heading", { name: "No CAD positions in this view" }),
+  ).toBeVisible();
+});

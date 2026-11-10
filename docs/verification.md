@@ -78,3 +78,12 @@ Verification for this change:
 - Simplification pass found no worthwhile behavior-preserving code change. No test was removed or weakened.
 
 The designer's optional polish notes were the existing persistent success banner and the dashed underline on Short; neither blocked approval. VoiceOver/keyboard accessibility, Windows execution and live Google Sheets were not tested by this change. The earlier distribution signing limitations still apply. All screenshots and the showcase workbook contain fictional data; real investor workbooks and statements were not modified.
+
+
+## Positions currency toggle fix
+
+The CAD/USD control updated the selected currency but the Positions list filtered only by search and open/closed status. The list now also filters on the instrument's native currency. The selected button exposes its pressed state, tooltips explain the native-currency behavior, and row counts/empty states identify the currency. This follows the existing separate-native-currency model; it does not convert USD positions to CAD.
+
+Two new regression tests in the existing workflows suite failed before the fix because USD rows remained after clicking CAD. All 13 UI tests now pass, including switching back to USD and combining currency with search and status. TypeScript/Vite build, ESLint and the Mac arm64 app build pass. An isolated copy of the production frontend, populated with Rust-generated fictional records, was clicked through USD (6 rows), CAD (1 row) and back to USD (6 rows). Screenshots show the actual browser preview. Native interaction checks were interrupted while the app was being used; no native click-verification pass is claimed for this fix. The running old app must restart to load the rebuilt bundle.
+
+Code review: lite inline correctness review completed with no actionable findings on the fix-only diff. No reviewer agents were dispatched. Simplification was skipped: the implementation is one currency predicate plus presentation labels, with no new helper or abstraction. Existing Rust financial calculations and persistence were untouched. No source data was modified. Windows/live Google verification and signing limitations remain unchanged.
