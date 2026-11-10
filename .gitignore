@@ -1,0 +1,13 @@
+/target/
+/node_modules/
+/dist/
+*.xlsx
+*.lockfile
+*.pending.json
+.env*
+!.env.example
+.DS_Store
+/coverage/
+/test-results/
+
+*.tsbuildinfo
